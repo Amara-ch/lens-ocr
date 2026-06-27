@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lens-ocr"
+version = "0.1.0"
+description = "Open-source document understanding pipeline with OCR, layout detection, and LaTeX conversion"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Amara-ch" }]
+keywords = ["ocr", "document-ai", "latex", "layout-detection"]
+
+[project.scripts]
+lens-ocr = "lens_ocr.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,14 @@
+services:
+  lens-ocr:
+    build: .
+    image: lens-ocr:0.1.0
+    container_name: lens-ocr
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./examples:/app/examples
+      - lens-ocr-cache:/root/.cache
+    restart: unless-stopped
+
+volumes:
+  lens-ocr-cache:
