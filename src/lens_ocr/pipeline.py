@@ -1,8 +1,7 @@
-"""Main document understanding pipeline."""
+﻿"""Main document understanding pipeline."""
 import time
 import uuid
 from pathlib import Path
-from typing import Union, List
 
 import numpy as np
 from PIL import Image
@@ -15,7 +14,7 @@ from .equations.latex_converter import LatexConverter
 from .tables.extractor import TableExtractor
 
 
-# Map Surya layout labels → our RegionType enum
+# Map layout labels to RegionType enum
 LABEL_TO_REGION = {
     "title": RegionType.TITLE,
     "section-header": RegionType.TITLE,
@@ -35,16 +34,22 @@ LABEL_TO_REGION = {
 class DocumentPipeline:
     """End-to-end document parsing pipeline."""
 
-    def __init__(self, lang: str = "en", use_gpu: bool = False):
-        print("⏳ Loading models (first run downloads weights — be patient)...")
+    def __init__(self, lang: str = "en", use_gpu: bool = False, enable_latex: bool = True):
+        print("Loading models (first run downloads weights — be patient)...")
         self.text_extractor = TextExtractor(lang=lang, use_gpu=use_gpu)
         self.layout_detector = LayoutDetector()
-        self.latex_converter = LatexConverter()
         self.table_extractor = TableExtractor(self.text_extractor)
-        print("✅ Pipeline ready!")
+        self.enable_latex = enable_latex
+        self.latex_converter = None
+        if enable_latex:
+            try:
+                self.latex_converter = LatexConverter()
+            except Exception as exc:
+                print(f"Warning: LaTeX converter unavailable: {exc}")
+                self.enable_latex = False
+        print("Pipeline ready!")
 
-    # ----------------------------- helpers ----------------------------- #
-    def _load_pages(self, path: Union[str, Path]) -> List[Image.Image]:
+    def _load_pages(self, path):
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Input file not found: {path}")
@@ -53,15 +58,15 @@ class DocumentPipeline:
         return [Image.open(path).convert("RGB")]
 
     @staticmethod
-    def _bbox_to_schema(bbox: tuple) -> BoundingBox:
+    def _bbox_to_schema(bbox):
         return BoundingBox(x_min=bbox[0], y_min=bbox[1], x_max=bbox[2], y_max=bbox[3])
 
     @staticmethod
-    def _map_region_type(label: str) -> RegionType:
+    def _map_region_type(label):
         return LABEL_TO_REGION.get(label.lower(), RegionType.TEXT)
 
     @staticmethod
-    def _table_to_markdown(rows: List[List[str]]) -> str:
+    def _table_to_markdown(rows):
         if not rows:
             return ""
         header = "| " + " | ".join(rows[0]) + " |"
@@ -69,11 +74,10 @@ class DocumentPipeline:
         body = "\n".join("| " + " | ".join(r) + " |" for r in rows[1:])
         return "\n".join([header, sep, body]) if rows[1:] else "\n".join([header, sep])
 
-    # ------------------------------- main ------------------------------ #
-    def process(self, file_path: Union[str, Path]) -> DocumentResult:
+    def process(self, file_path):
         start = time.time()
         pages = self._load_pages(file_path)
-        all_regions: List[Region] = []
+        all_regions = []
 
         for page_num, page in enumerate(pages, start=1):
             layout_regions = self.layout_detector.detect(page)
@@ -92,11 +96,13 @@ class DocumentPipeline:
                 )
 
                 if region_type == RegionType.EQUATION:
-                    region.latex = self.latex_converter.convert(cropped)
+                    if self.enable_latex and self.latex_converter is not None:
+                        region.latex = self.latex_converter.convert(cropped)
+                    else:
+                        region.latex = "% LaTeX disabled (torch DLL conflict on Windows)"
                 elif region_type == RegionType.TABLE:
                     region.table_data = self.table_extractor.extract(cropped)
                 elif region_type in (RegionType.FIGURE, RegionType.CHART):
-                    # Figures: no text extraction, just record the bbox
                     pass
                 else:
                     cells = self.text_extractor.extract(np.array(cropped))
@@ -104,11 +110,9 @@ class DocumentPipeline:
 
                 all_regions.append(region)
 
-        # Sort regions by page → top-to-bottom for readable rendering
         all_regions.sort(key=lambda r: (r.page, r.bbox.y_min))
 
-        # Build Markdown output
-        md_lines: List[str] = []
+        md_lines = []
         for r in all_regions:
             if r.type == RegionType.TITLE and r.text:
                 md_lines.append(f"# {r.text}")

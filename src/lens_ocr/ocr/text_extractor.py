@@ -1,58 +1,38 @@
-"""Pydantic schemas defining the structured output of lens-ocr."""
-from enum import Enum
-from typing import List, Optional
-from pydantic import BaseModel, Field
+﻿"""Text extraction using PaddleOCR (supports 80+ languages)."""
+from typing import List, Dict, Any
+import numpy as np
+from paddleocr import PaddleOCR
 
 
-class RegionType(str, Enum):
-    """Types of regions we can detect in a document."""
-    TEXT = "text"
-    TITLE = "title"
-    TABLE = "table"
-    FIGURE = "figure"
-    EQUATION = "equation"
-    SIGNATURE = "signature"
-    CHART = "chart"
-    LIST = "list"
-    HEADER = "header"
-    FOOTER = "footer"
+class TextExtractor:
+    """Wraps PaddleOCR with a simple, normalized output format."""
 
+    def __init__(self, lang: str = "en", use_gpu: bool = False):
+        self.ocr = PaddleOCR(
+            use_angle_cls=True,
+            lang=lang,
+            use_gpu=use_gpu,
+            show_log=False,
+        )
 
-class BoundingBox(BaseModel):
-    """Axis-aligned bounding box in pixel coordinates."""
-    x_min: int
-    y_min: int
-    x_max: int
-    y_max: int
+    def extract(self, image: np.ndarray) -> List[Dict[str, Any]]:
+        """
+        Run OCR on a numpy image array.
 
-    @property
-    def width(self) -> int:
-        return self.x_max - self.x_min
+        Returns a list of dicts: {bbox: (x_min, y_min, x_max, y_max), text, confidence}
+        """
+        result = self.ocr.ocr(image, cls=True)
+        if not result or not result[0]:
+            return []
 
-    @property
-    def height(self) -> int:
-        return self.y_max - self.y_min
-
-
-class Region(BaseModel):
-    """A single detected region within a document page."""
-    id: str
-    type: RegionType
-    bbox: BoundingBox
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    page: int = 1
-
-    # Content fields (only some are set, depending on region type)
-    text: Optional[str] = None
-    latex: Optional[str] = None              # for equations
-    table_data: Optional[List[List[str]]] = None  # for tables
-
-
-class DocumentResult(BaseModel):
-    """Complete parsed output of a document."""
-    filename: str
-    num_pages: int
-    regions: List[Region]
-    markdown: str = ""        # entire document rendered as Markdown
-    plain_text: str = ""      # entire document as plain text
-    processing_time_ms: int = 0
+        extracted: List[Dict[str, Any]] = []
+        for line in result[0]:
+            bbox_pts, (text, conf) = line
+            xs = [p[0] for p in bbox_pts]
+            ys = [p[1] for p in bbox_pts]
+            extracted.append({
+                "bbox": (int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))),
+                "text": text,
+                "confidence": float(conf),
+            })
+        return extracted

@@ -1,44 +1,53 @@
-"""Layout detection using Surya — detects titles, tables, figures, equations, etc."""
+﻿"""Layout detection using PaddleOCR's PP-Structure (no torch dependency)."""
 from typing import List, Dict, Any
+import numpy as np
 from PIL import Image
+from paddleocr import PPStructure
 
-from surya.layout import batch_layout_detection
-from surya.model.detection.model import load_model, load_processor
-from surya.settings import settings
+
+# Map PaddleOCR layout labels to our internal terminology
+LABEL_MAP = {
+    "title": "title",
+    "text": "text",
+    "list": "list-item",
+    "table": "table",
+    "figure": "figure",
+    "equation": "equation",
+    "header": "page-header",
+    "footer": "page-footer",
+    "reference": "text",
+}
 
 
 class LayoutDetector:
-    """Detects structured regions in a document page."""
+    """Detects structured regions in a document page using PP-Structure."""
 
     def __init__(self):
-        # Layout model (region classification)
-        self.model = load_model(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
-        self.processor = load_processor(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
-        # Text-line detection model (Surya requires this internally)
-        self.det_model = load_model()
-        self.det_processor = load_processor()
+        self.engine = PPStructure(
+            table=False,           # we use our own table extractor
+            ocr=False,             # we do OCR separately per region
+            show_log=False,
+            layout=True,
+            lang="en",
+        )
 
     def detect(self, image: Image.Image) -> List[Dict[str, Any]]:
         """Return list of {type, bbox, confidence} dicts."""
-        predictions = batch_layout_detection(
-            [image],
-            self.model,
-            self.processor,
-            self.det_model,
-            self.det_processor,
-        )
+        arr = np.array(image)
+        if arr.ndim == 3 and arr.shape[2] == 4:
+            arr = arr[:, :, :3]  # drop alpha if present
+
+        results = self.engine(arr)
 
         regions: List[Dict[str, Any]] = []
-        for pred in predictions:
-            for box in pred.bboxes:
-                regions.append({
-                    "type": box.label.lower(),
-                    "bbox": (
-                        int(box.bbox[0]),
-                        int(box.bbox[1]),
-                        int(box.bbox[2]),
-                        int(box.bbox[3]),
-                    ),
-                    "confidence": float(getattr(box, "confidence", 0.95)),
-                })
+        for r in results:
+            raw_label = r.get("type", "text").lower()
+            label = LABEL_MAP.get(raw_label, "text")
+            bbox = r.get("bbox", [0, 0, 0, 0])
+            regions.append({
+                "type": label,
+                "bbox": (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])),
+                "confidence": float(r.get("score", 0.9)),
+            })
+
         return regions

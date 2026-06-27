@@ -1,0 +1,24 @@
+{
+  "filename": "WhatsApp Image 2026-05-18 at 12.19.44 AM.jpeg",
+  "num_pages": 1,
+  "regions": [
+    {
+      "id": "2e178e4f",
+      "type": "figure",
+      "bbox": {
+        "x_min": 0,
+        "y_min": 0,
+        "x_max": 852,
+        "y_max": 1280
+      },
+      "confidence": 0.9714511036872864,
+      "page": 1,
+      "text": null,
+      "latex": null,
+      "table_data": null
+    }
+  ],
+  "markdown": "![figure](page-1-region-2e178e4f)",
+  "plain_text": "",
+  "processing_time_ms": 644
+}

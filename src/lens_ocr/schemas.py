@@ -1,4 +1,4 @@
-"""Pydantic schemas defining the structured output of lens-ocr."""
+﻿"""Pydantic schemas defining the structured output of lens-ocr."""
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
@@ -44,8 +44,8 @@ class Region(BaseModel):
 
     # Content fields (only some are set, depending on region type)
     text: Optional[str] = None
-    latex: Optional[str] = None              # for equations
-    table_data: Optional[List[List[str]]] = None  # for tables
+    latex: Optional[str] = None
+    table_data: Optional[List[List[str]]] = None
 
 
 class DocumentResult(BaseModel):
@@ -53,6 +53,6 @@ class DocumentResult(BaseModel):
     filename: str
     num_pages: int
     regions: List[Region]
-    markdown: str = ""        # entire document rendered as Markdown
-    plain_text: str = ""      # entire document as plain text
+    markdown: str = ""
+    plain_text: str = ""
     processing_time_ms: int = 0

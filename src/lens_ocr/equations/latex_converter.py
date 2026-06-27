@@ -1,44 +1,23 @@
-"""Layout detection using Surya — detects titles, tables, figures, equations, etc."""
-from typing import List, Dict, Any
+﻿"""Convert equation image regions to LaTeX (gracefully handles missing torch)."""
 from PIL import Image
 
-from surya.layout import batch_layout_detection
-from surya.model.detection.model import load_model, load_processor
-from surya.settings import settings
+try:
+    from pix2tex.cli import LatexOCR
+    _PIX2TEX_AVAILABLE = True
+except Exception:
+    _PIX2TEX_AVAILABLE = False
 
 
-class LayoutDetector:
-    """Detects structured regions in a document page."""
+class LatexConverter:
+    """Wraps pix2tex; raises if not available so pipeline can skip gracefully."""
 
     def __init__(self):
-        # Layout model (region classification)
-        self.model = load_model(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
-        self.processor = load_processor(checkpoint=settings.LAYOUT_MODEL_CHECKPOINT)
-        # Text-line detection model (Surya requires this internally)
-        self.det_model = load_model()
-        self.det_processor = load_processor()
+        if not _PIX2TEX_AVAILABLE:
+            raise RuntimeError("pix2tex unavailable (likely torch DLL issue)")
+        self.model = LatexOCR()
 
-    def detect(self, image: Image.Image) -> List[Dict[str, Any]]:
-        """Return list of {type, bbox, confidence} dicts."""
-        predictions = batch_layout_detection(
-            [image],
-            self.model,
-            self.processor,
-            self.det_model,
-            self.det_processor,
-        )
-
-        regions: List[Dict[str, Any]] = []
-        for pred in predictions:
-            for box in pred.bboxes:
-                regions.append({
-                    "type": box.label.lower(),
-                    "bbox": (
-                        int(box.bbox[0]),
-                        int(box.bbox[1]),
-                        int(box.bbox[2]),
-                        int(box.bbox[3]),
-                    ),
-                    "confidence": float(getattr(box, "confidence", 0.95)),
-                })
-        return regions
+    def convert(self, image: Image.Image) -> str:
+        try:
+            return self.model(image)
+        except Exception as exc:
+            return f"% lens-ocr error: {exc}"

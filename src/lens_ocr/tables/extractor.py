@@ -1,4 +1,4 @@
-"""Simple table extractor: OCR within the table region, then group cells into rows."""
+﻿"""Simple table extractor: OCR within the table region, then group cells into rows."""
 from typing import List
 import numpy as np
 from PIL import Image
