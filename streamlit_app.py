@@ -31,15 +31,21 @@ def get_api_key():
     return os.getenv("GEMINI_API_KEY", "")
 
 
-# === STYLING ===
+# === STYLING — Clean white + dark maroon theme ===
 st.markdown("""
 <style>
+    /* Force light theme everywhere */
+    .stApp {
+        background: #fafaf7 !important;
+        color: #1f2937 !important;
+    }
+
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Tighter spacing */
+    /* Container */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
@@ -49,83 +55,148 @@ st.markdown("""
     /* Hero section */
     .hero {
         text-align: center;
-        padding: 20px 0 30px 0;
+        padding: 30px 0 40px 0;
     }
     .hero h1 {
-        font-size: 56px;
+        font-size: 60px;
         font-weight: 800;
         margin: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #7f1d1d;
+        letter-spacing: -1.5px;
     }
     .hero .tagline {
         font-size: 20px;
         color: #6b7280;
-        margin-top: 8px;
+        margin-top: 10px;
         font-weight: 500;
     }
     .hero .badges {
-        margin-top: 16px;
+        margin-top: 20px;
     }
     .hero .badge {
         display: inline-block;
-        padding: 6px 14px;
-        margin: 0 4px;
+        padding: 7px 16px;
+        margin: 3px;
         border-radius: 999px;
         font-size: 13px;
         font-weight: 600;
+        background: #ffffff;
+        color: #7f1d1d;
+        border: 1.5px solid #fecaca;
     }
-    .badge-green { background: #d1fae5; color: #065f46; }
-    .badge-blue  { background: #dbeafe; color: #1e40af; }
-    .badge-purple { background: #ede9fe; color: #5b21b6; }
 
-    /* Section headers */
+    /* Section titles */
     .section-title {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 700;
-        color: #111827;
-        margin: 16px 0 12px 0;
+        color: #1f2937;
+        margin: 10px 0 14px 0;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    /* Button */
-    .stButton button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 14px 28px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 16px;
-        width: 100%;
+    /* All text on light bg */
+    .stMarkdown, .stMarkdown p, .stMarkdown li, .stMarkdown span,
+    .stText, label, .stTextInput label, .stSelectbox label,
+    .stFileUploader label {
+        color: #1f2937 !important;
     }
-    .stButton button:hover {
-        background: linear-gradient(135deg, #5568d3 0%, #6a3f93 100%);
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+
+    /* Selectbox - force light theme */
+    .stSelectbox > div > div {
+        background: #ffffff !important;
+        color: #1f2937 !important;
+        border: 1.5px solid #e5e7eb !important;
+        border-radius: 8px !important;
+    }
+    .stSelectbox label {
+        color: #374151 !important;
+        font-weight: 600 !important;
+    }
+    div[data-baseweb="select"] > div {
+        background: #ffffff !important;
+        color: #1f2937 !important;
+    }
+    div[data-baseweb="popover"] {
+        background: #ffffff !important;
+    }
+    li[role="option"] {
+        background: #ffffff !important;
+        color: #1f2937 !important;
+    }
+    li[role="option"]:hover {
+        background: #fef2f2 !important;
+        color: #7f1d1d !important;
     }
 
     /* File uploader */
-    .stFileUploader {
-        background: white;
-        border-radius: 12px;
-        padding: 4px;
+    [data-testid="stFileUploaderDropzone"] {
+        background: #ffffff !important;
+        border: 2px dashed #fecaca !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+    }
+    [data-testid="stFileUploaderDropzone"]:hover {
+        border-color: #7f1d1d !important;
+        background: #fef2f2 !important;
+    }
+    [data-testid="stFileUploaderDropzone"] * {
+        color: #6b7280 !important;
+    }
+    [data-testid="stFileUploaderDropzone"] button {
+        background: #7f1d1d !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        font-weight: 600 !important;
     }
 
-    /* Selectbox */
-    .stSelectbox label {
-        font-weight: 600;
-        color: #374151;
+    /* Primary button */
+    .stButton button {
+        background: #7f1d1d !important;
+        color: white !important;
+        border: none !important;
+        padding: 14px 28px !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        width: 100% !important;
+        transition: all 0.2s !important;
+    }
+    .stButton button:hover {
+        background: #991b1b !important;
+        color: white !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(127, 29, 29, 0.3) !important;
+    }
+    .stButton button:active {
+        transform: translateY(0) !important;
     }
 
-    /* Info / success messages */
+    /* Download button */
+    .stDownloadButton button {
+        background: #ffffff !important;
+        color: #7f1d1d !important;
+        border: 2px solid #7f1d1d !important;
+        padding: 10px 20px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    .stDownloadButton button:hover {
+        background: #7f1d1d !important;
+        color: white !important;
+    }
+
+    /* Info / success / error messages */
     .stAlert {
-        border-radius: 10px;
+        border-radius: 10px !important;
+        border-left: 4px solid #7f1d1d !important;
+    }
+    [data-baseweb="notification"] {
+        background: #fef2f2 !important;
+        color: #1f2937 !important;
     }
 
     /* Tabs */
@@ -136,26 +207,94 @@ st.markdown("""
         border-radius: 10px;
     }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        font-weight: 600;
+        background: transparent !important;
+        color: #6b7280 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        padding: 8px 16px !important;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: #ffffff !important;
+        color: #7f1d1d !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Tab content */
+    .stTabs [data-baseweb="tab-panel"] {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-top: 12px;
+        border: 1px solid #e5e7eb;
+    }
+
+    /* Rendered markdown inside tabs - readable! */
+    .stTabs [data-baseweb="tab-panel"] p,
+    .stTabs [data-baseweb="tab-panel"] li,
+    .stTabs [data-baseweb="tab-panel"] span,
+    .stTabs [data-baseweb="tab-panel"] div {
+        color: #1f2937 !important;
+    }
+
+    /* Code blocks */
+    .stCodeBlock, code {
+        background: #fef2f2 !important;
+        color: #7f1d1d !important;
+        border-radius: 8px !important;
+    }
+    pre {
+        background: #1f2937 !important;
+        color: #f9fafb !important;
+        border-radius: 8px !important;
+        padding: 16px !important;
+    }
+    pre code {
+        background: transparent !important;
+        color: #f9fafb !important;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: #ffffff !important;
+        color: #1f2937 !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        border: 1px solid #e5e7eb !important;
+    }
+
+    /* Caption */
+    [data-testid="stCaptionContainer"] {
+        color: #6b7280 !important;
+    }
+
+    /* Image caption */
+    .stImage [data-testid="stImageCaption"] {
+        color: #6b7280 !important;
+        font-style: italic;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: #7f1d1d !important;
     }
 
     /* Footer */
     .app-footer {
         text-align: center;
-        color: #9ca3af;
+        color: #6b7280;
         font-size: 14px;
         padding: 30px 0 10px 0;
-        margin-top: 40px;
+        margin-top: 50px;
         border-top: 1px solid #e5e7eb;
     }
     .app-footer a {
-        color: #6366f1;
+        color: #7f1d1d;
         text-decoration: none;
         font-weight: 600;
     }
     .app-footer a:hover {
-        color: #4f46e5;
+        color: #991b1b;
+        text-decoration: underline;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -167,10 +306,10 @@ st.markdown("""
     <h1>🔍 lens-ocr</h1>
     <div class='tagline'>Mistral-quality OCR — Free & Open Source</div>
     <div class='badges'>
-        <span class='badge badge-green'>✓ Handwriting</span>
-        <span class='badge badge-blue'>✓ LaTeX equations</span>
-        <span class='badge badge-purple'>✓ Tables</span>
-        <span class='badge badge-green'>✓ 80+ languages</span>
+        <span class='badge'>✓ Handwriting</span>
+        <span class='badge'>✓ LaTeX equations</span>
+        <span class='badge'>✓ Tables</span>
+        <span class='badge'>✓ 80+ languages</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
