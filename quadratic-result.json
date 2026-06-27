@@ -1,0 +1,24 @@
+{
+  "filename": "images (1).jpg",
+  "num_pages": 1,
+  "regions": [
+    {
+      "id": "12ce7b72",
+      "type": "figure",
+      "bbox": {
+        "x_min": 37,
+        "y_min": 8,
+        "x_max": 571,
+        "y_max": 499
+      },
+      "confidence": 0.9528640508651733,
+      "page": 1,
+      "text": null,
+      "latex": null,
+      "table_data": null
+    }
+  ],
+  "markdown": "![figure](page-1-region-12ce7b72)",
+  "plain_text": "",
+  "processing_time_ms": 521
+}
