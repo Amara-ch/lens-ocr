@@ -4,34 +4,68 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.Python
 venv/
 env/
-.venv
-*.egg-info/
-dist/
+ENV/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # IDE
 .vscode/
 .idea/
 *.swp
-
-# Models & cache
-models/
-.cache/
-*.pt
-*.pth
-*.onnx
-
-# Outputs
-outputs/
-*.log
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Env
+# Secrets - NEVER COMMIT!
 .env
 .env.local
+*.key
+secrets.toml
+.streamlit/secrets.toml
+
+# Test outputs
+*.json
+*.md
+!README.md
+*.html
+!templates/*.html
+test-result*
+quadratic*
+transcript*
+output*
+smart-output*
+*-result*
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Models (large files)
+*.pdparams
+*.onnx
+*.pth
+*.pt
+.paddleocr/
+
+# Logs
+*.log
 '@ | Out-File -FilePath .gitignore -Encoding utf8
